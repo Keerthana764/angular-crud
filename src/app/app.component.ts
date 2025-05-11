@@ -21,10 +21,11 @@ interface EmployeeModel {
   styleUrl: './app.component.css'
 })
 export class AppComponent {
+  title = 'CRUD'; // for testing
   employeeForm: FormGroup;
   employeeList: EmployeeModel[] = [];
   isEdit: boolean = false;
-  editIndex: number = -1;
+  currentEmpId: number | null = null;
 
   constructor() {
     this.employeeForm = new FormGroup({
@@ -44,28 +45,58 @@ export class AppComponent {
   }
 
   onSave() {
-    if (this.isEdit) {
-      this.employeeList[this.editIndex] = {
-        empId: this.employeeList[this.editIndex].empId,
-        ...this.employeeForm.value
-      };
-      this.isEdit = false;
-      this.editIndex = -1;
-    } else {
-      const newEmp: EmployeeModel = {
-        empId: this.employeeList.length + 1,
-        ...this.employeeForm.value
-      };
-      this.employeeList.push(newEmp);
-    }
+    const newEmp: EmployeeModel = {
+      empId: this.employeeList.length > 0
+        ? Math.max(...this.employeeList.map(emp => emp.empId)) + 1
+        : 1,
+      ...this.employeeForm.value,
+    };
+
+    this.employeeList.push(newEmp);
     localStorage.setItem('EmpData', JSON.stringify(this.employeeList));
+
+    fetch('http://localhost:3000/employees', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newEmp)
+    })
+      .then(res => res.json())
+      .then(data => console.log('Saved to server:', data))
+      .catch(err => console.error('Save error:', err));
+
     this.employeeForm.reset();
   }
 
   onEdit(index: number) {
-    this.employeeForm.patchValue(this.employeeList[index]);
+    const emp = this.employeeList[index];
+    this.employeeForm.patchValue(emp);
     this.isEdit = true;
-    this.editIndex = index;
+    this.currentEmpId = emp.empId;
+  }
+
+onUpdate() {
+    if (this.currentEmpId === null) return;
+
+    const updatedEmp: EmployeeModel = {
+      empId: this.currentEmpId,
+      ...this.employeeForm.value,
+    };
+
+    // Find the employee in the list using the currentEmpId
+    const index = this.employeeList.findIndex(emp => emp.empId === this.currentEmpId);
+    if (index !== -1) {
+      // Update the existing employee object at the found index with new values
+      this.employeeList[index] = updatedEmp;
+
+      // Save the updated employee list to localStorage
+      localStorage.setItem('EmpData', JSON.stringify(this.employeeList));
+    }
+
+    // Reset the form and UI state
+    this.employeeForm.reset();
+    this.isEdit = false;
+    this.currentEmpId = null;
+
   }
 
   onDelete(index: number) {

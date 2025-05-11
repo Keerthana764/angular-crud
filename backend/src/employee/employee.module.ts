@@ -11,3 +11,4 @@ import { Employee, EmployeeSchema } from './employee.schema';
   controllers: [EmployeeController]
 })
 export class EmployeeModule {}
+

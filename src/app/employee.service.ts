@@ -12,7 +12,7 @@ interface Employee {
   providedIn: 'root',
 })
 export class EmployeeService {
-  private apiUrl = 'http://localhost:3000/employee';  // Update with your backend URL
+  private apiUrl = 'http://localhost:3000/employees';  // Update with your backend URL
 
   constructor(private http: HttpClient) {}
 

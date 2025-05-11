@@ -25,4 +25,4 @@ export class EmployeeController {
   async remove(@Param('id') id: string): Promise<Employee | null> {
     return this.employeeService.remove(id);
   }
-}
+}       
